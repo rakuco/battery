@@ -1,0 +1,28 @@
+name: Run tidy on spec
+on:
+  pull_request:
+    branches:
+      - "gh-pages"
+    paths:
+      - "index.html"
+
+jobs:
+  tidy:
+    name: Reformat index.html if necessary
+    # We need macos-latest because tidy-2:5.6.0 which is present on all Ubuntu
+    # releases supported by GitHub actions has a bug that causes the documents
+    # to be wrongly formatted.
+    # https://github.com/w3c/screen-wake-lock/pull/319 has more details.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Required by stefanzweifel/git-auto-commit-action@v4
+          ref: ${{ github.head_ref }}
+      - run: brew install tidy-html5
+      - run: tidy -config .tidyrc -modify index.html
+      - name: Commit and push reformatted file
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Automated commit: reformat index.html"
+          file_pattern: index.html
